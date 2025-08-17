@@ -21,7 +21,7 @@ public class Main {
                 break;
             } else {
                 Command command = new Command(input);
-                String[] arguments = command.splitArguments();
+                String[] arguments = command.createFormattingArray();
                 String argumentString = String.join(", ", arguments);
                 terminal.writer().println(argumentString);
                 terminal.writer().println("Arguments: " + arguments.length);

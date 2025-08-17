@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public record Command(String commandString) {
@@ -10,7 +9,7 @@ public record Command(String commandString) {
      * @return The commandID string
      */
     public String getCommandID() {
-        return splitArguments()[0];
+        return createFormattingArray()[0];
     }
 
     /**
@@ -28,34 +27,44 @@ public record Command(String commandString) {
     }
 
     /**
-     * Split the command string into individual argument strings.
-     * @return An array of argument strings
+     * Split the command string into individual argument strings and whitespace strings.
+     * @return An array of argument strings and whitespace strings
      */
-    public String[] splitArguments() {
+    public String[] createFormattingArray() {
         List<String> arguments = new ArrayList<>();
         int startIndex = 0;
         int endIndex = 0;
         while(startIndex < commandString.length()) {
+            if(commandString.charAt(startIndex) == ' ') {
+                arguments.add(" ");
+                startIndex++;
+            }
             if(commandString.charAt(startIndex) == '"') {
                 endIndex = commandString.indexOf('"', startIndex + 1) + 1;
                 if(endIndex == 0) {endIndex = commandString.length();}
                 String argument = commandString.substring(startIndex, endIndex);
-                if(!argument.isBlank()) {
-                    arguments.add(argument);
-                }
+                arguments.add(argument);
                 startIndex = endIndex + 1;
             } else {
                 endIndex = commandString.indexOf(' ', startIndex + 1);
                 if(endIndex == -1) {endIndex = commandString.length();}
                 String argument = commandString.substring(startIndex, endIndex);
-                if(!argument.isBlank()) {
-                    arguments.add(argument);
-                    startIndex = endIndex + 1;
-                } else {
-                    startIndex = endIndex;
-                }
+                arguments.add(argument);
+                startIndex = endIndex;
             }
         }
         return arguments.toArray(new String[0]);
     }
+
+    public String[] getArguments() {
+        String[] formattingArray = createFormattingArray();
+        List<String> arguments = new ArrayList<>();
+        for(String argument : formattingArray) {
+            if(!argument.isBlank()) {
+                arguments.add(argument);
+            }
+        }
+        return arguments.toArray(new String[0]);
+    }
+
 }

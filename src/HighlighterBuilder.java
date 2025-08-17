@@ -3,9 +3,6 @@ import org.jline.reader.LineReader;
 import org.jline.reader.impl.DefaultHighlighter;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStringBuilder;
-import org.jline.utils.AttributedStyle;
-
-import java.util.HashMap;
 
 public class HighlighterBuilder {
 
@@ -15,11 +12,14 @@ public class HighlighterBuilder {
             public AttributedString highlight(LineReader reader, String buffer) {
                 AttributedStringBuilder builder = new AttributedStringBuilder();
                 Command command = new Command(buffer);
-                String[] arguments = command.splitArguments();
-                for(String argument : arguments) {
-                    ArgumentType argumentType = ArgumentMatcher.matchArgumentType(argument);
-                    builder.styled(argumentType.getStyle(), argument);
-                    builder.append(" ");
+                String[] formattingArray = command.createFormattingArray();
+                for(String string : formattingArray) {
+                    if(string.isBlank()) {
+                        builder.append(string);
+                    } else {
+                        ArgumentType argumentType = ArgumentMatcher.matchArgumentType(string);
+                        builder.styled(argumentType.getStyle(), string);
+                    }
                 }
                 return builder.toAttributedString();
             }
