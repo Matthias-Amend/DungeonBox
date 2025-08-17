@@ -5,6 +5,8 @@ import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 
+import java.util.HashMap;
+
 public class HighlighterBuilder {
 
     public static Highlighter build() {
@@ -13,16 +15,10 @@ public class HighlighterBuilder {
             public AttributedString highlight(LineReader reader, String buffer) {
                 AttributedStringBuilder builder = new AttributedStringBuilder();
                 Command command = new Command(buffer);
-                if(command.hasValidCommandID()) {
-                    builder.styled(AttributedStyle.BOLD.foreground(AttributedStyle.RED), command.getCommandID());
-                    builder.append(" ");
-                } else {
-                    builder.append(command.getCommandID());
-                    builder.append(" ");
-                }
-                String[] arguments = buffer.split(" ");
-                for(int bufferIndex = 1; bufferIndex < arguments.length; bufferIndex++) {
-                    builder.append(arguments[bufferIndex]);
+                String[] arguments = command.splitArguments();
+                for(String argument : arguments) {
+                    ArgumentType argumentType = ArgumentMatcher.matchArgumentType(argument);
+                    builder.styled(argumentType.getStyle(), argument);
                     builder.append(" ");
                 }
                 return builder.toAttributedString();

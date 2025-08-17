@@ -20,7 +20,11 @@ public class Main {
                 running = false;
                 break;
             } else {
-                terminal.writer().println(input);
+                Command command = new Command(input);
+                String[] arguments = command.splitArguments();
+                String argumentString = String.join(", ", arguments);
+                terminal.writer().println(argumentString);
+                terminal.writer().println("Arguments: " + arguments.length);
             }
         }
         terminal.close();

@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 public record Command(String commandString) {
 
     /**
@@ -6,7 +10,7 @@ public record Command(String commandString) {
      * @return The commandID string
      */
     public String getCommandID() {
-        return commandString.split(" ")[0];
+        return splitArguments()[0];
     }
 
     /**
@@ -23,4 +27,35 @@ public record Command(String commandString) {
         return false;
     }
 
+    /**
+     * Split the command string into individual argument strings.
+     * @return An array of argument strings
+     */
+    public String[] splitArguments() {
+        List<String> arguments = new ArrayList<>();
+        int startIndex = 0;
+        int endIndex = 0;
+        while(startIndex < commandString.length()) {
+            if(commandString.charAt(startIndex) == '"') {
+                endIndex = commandString.indexOf('"', startIndex + 1) + 1;
+                if(endIndex == 0) {endIndex = commandString.length();}
+                String argument = commandString.substring(startIndex, endIndex);
+                if(!argument.isBlank()) {
+                    arguments.add(argument);
+                }
+                startIndex = endIndex + 1;
+            } else {
+                endIndex = commandString.indexOf(' ', startIndex + 1);
+                if(endIndex == -1) {endIndex = commandString.length();}
+                String argument = commandString.substring(startIndex, endIndex);
+                if(!argument.isBlank()) {
+                    arguments.add(argument);
+                    startIndex = endIndex + 1;
+                } else {
+                    startIndex = endIndex;
+                }
+            }
+        }
+        return arguments.toArray(new String[0]);
+    }
 }
