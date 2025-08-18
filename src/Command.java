@@ -38,13 +38,12 @@ public record Command(String commandString) {
             if(commandString.charAt(startIndex) == ' ') {
                 arguments.add(" ");
                 startIndex++;
-            }
-            if(commandString.charAt(startIndex) == '"') {
+            } else if(commandString.charAt(startIndex) == '"') {
                 endIndex = commandString.indexOf('"', startIndex + 1) + 1;
                 if(endIndex == 0) {endIndex = commandString.length();}
                 String argument = commandString.substring(startIndex, endIndex);
                 arguments.add(argument);
-                startIndex = endIndex + 1;
+                startIndex = endIndex;
             } else {
                 endIndex = commandString.indexOf(' ', startIndex + 1);
                 if(endIndex == -1) {endIndex = commandString.length();}
@@ -56,6 +55,10 @@ public record Command(String commandString) {
         return arguments.toArray(new String[0]);
     }
 
+    /**
+     * Split the command string into individual argument strings.
+     * @return An array of argument strings
+     */
     public String[] getArguments() {
         String[] formattingArray = createFormattingArray();
         List<String> arguments = new ArrayList<>();
