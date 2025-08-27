@@ -60,6 +60,14 @@ public class Entry implements Document{
     }
 
     /**
+     * Write the content string into the file.
+     */
+    @Override
+    public void write() {
+        DocumentWriter.writeToFile(path, content);
+    }
+
+    /**
      * Get the content of the document as a string.
      * @return The content string
      */

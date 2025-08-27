@@ -1,24 +1,29 @@
+import command.Command;
+import command.CommandChecker;
+import command.CommandType;
+import command.ErrorType;
+import command.structure.ArgumentMatcher;
+import game.GameState;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
+import java.util.List;
 
 public class Main {
 
-    private static boolean running = true;
+    private static GameState gameState = new GameState();
 
     public static void main(String[] args) throws IOException {
-        Terminal terminal = TerminalBuilder.builder().system(true).build();
+        /*Terminal terminal = TerminalBuilder.builder().system(true).build();
         LineReader lineReader = LineReaderBuilder.builder().terminal(terminal).build();
-        while(running) {
+        while(gameState.isSimulationRunning()) {
             String input = lineReader.readLine("> ");
-            if(input.equalsIgnoreCase("exit")) {
-                running = false;
-                break;
-            }
-        }
+            Command command = new Command(input);
+            gameState.execute(command);
+        }*/
     }
 
 }

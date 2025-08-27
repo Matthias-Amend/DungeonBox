@@ -1,0 +1,17 @@
+package command;
+
+public enum ErrorType {
+
+    INCORRECT_ARGUMENT_COUNT,
+
+    INCORRECT_ARGUMENT_TYPE,
+
+    INCORRECT_FOLLOWUP_ARGUMENT,
+
+    INCORRECT_ARGUMENTS,
+
+    INVALID_FLAG,
+
+    NO_ERROR;
+
+}

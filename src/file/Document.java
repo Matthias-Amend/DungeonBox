@@ -32,6 +32,11 @@ public interface Document {
     public void read();
 
     /**
+     * Write the content string into the file.
+     */
+    public void write();
+
+    /**
      * Get the content of the document as a string.
      * @return The content string
      */
