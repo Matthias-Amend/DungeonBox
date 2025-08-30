@@ -19,6 +19,9 @@ public class ArgumentMatcher {
         if(isCommand(argumentString)) {
             return ArgumentType.COMMAND;
         }
+        if(isNumber(argumentString)) {
+            return ArgumentType.NUMBER;
+        }
         return ArgumentType.ENTRY;
     }
 
@@ -52,6 +55,21 @@ public class ArgumentMatcher {
      */
     private static boolean isText(String argumentString) {
         return argumentString.matches("\"[^\"]*\"?");
+    }
+
+    /**
+     * Check if the argument string can be converted to a floating point number.
+     * @param argumentString The argument string
+     * @return True if the argument string is a float, false otherwise
+     */
+    private static boolean isNumber(String argumentString) {
+        try {
+            float result = Float.parseFloat(argumentString);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        return true;
+
     }
 
 }

@@ -9,12 +9,17 @@ import java.nio.file.Path;
  * Entry objects can be used to represent Locations, side characters and other lore
  * @author Matthias Amend
  */
-public class Entry implements Document{
+public class EntryDocument implements Document{
 
     private String title;
-    private Path path;
+    private File path;
 
     private String content;
+
+    public EntryDocument(String title, File path) {
+        this.title = title;
+        this.path = path;
+    }
 
     /**
      * Create the document as a file.
@@ -23,13 +28,11 @@ public class Entry implements Document{
      */
     @Override
     public void create() {
-        if(!Document.doesFileExist(path)) {
-            try {
-                File file = path.toFile();
-                Boolean success = file.createNewFile();
-            } catch (IOException e) {
-                System.err.println("Error occurred creating File: " + e);
-            }
+        try {
+            File file = new File(path, title);
+            Boolean success = file.createNewFile();
+        } catch (IOException e) {
+            System.err.println("Error occurred creating File: " + e);
         }
     }
 
@@ -47,7 +50,7 @@ public class Entry implements Document{
      * @return The path object
      */
     @Override
-    public Path getPath() {
+    public File getPath() {
         return path;
     }
 
@@ -56,7 +59,8 @@ public class Entry implements Document{
      */
     @Override
     public void read() {
-        content = DocumentReader.readFile(path);
+        File totalPath = new File(path, title);
+        content = DocumentReader.readFile(totalPath.toPath());
     }
 
     /**
@@ -64,7 +68,8 @@ public class Entry implements Document{
      */
     @Override
     public void write() {
-        DocumentWriter.writeToFile(path, content);
+        File totalPath = new File(path, title);
+        DocumentWriter.writeToFile(totalPath.toPath(), content);
     }
 
     /**

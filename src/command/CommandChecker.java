@@ -2,9 +2,10 @@ package command;
 
 import command.structure.ArgumentMatcher;
 import command.structure.ArgumentType;
+import command.structure.Flag;
 import command.structure.FlagType;
 
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -22,25 +23,25 @@ public class CommandChecker {
      */
     public static ErrorType check(Command command) {
         CommandType commandType = command.getCommandType();
-        ArgumentType[] expectedArguments = commandType.getArgumentStructure();
+        if(commandType == null) {
+            return ErrorType.INVALID_COMMAND;
+        }
         String[] argumentStrings = command.getArguments();
-        ArgumentType[] actualArguments = new ArgumentType[argumentStrings.length];
         for(int argumentIndex = 0; argumentIndex < argumentStrings.length; argumentIndex++) {
             ArgumentType actualArgumentType = ArgumentMatcher.match(argumentStrings[argumentIndex]);
-            actualArguments[argumentIndex] = actualArgumentType;
             if(actualArgumentType == ArgumentType.FLAG) {
                 FlagType flagType = FlagType.getFlagType(argumentStrings[argumentIndex]);
                 if(flagType == null) {
                     return ErrorType.INVALID_FLAG;
                 }
                 switch (flagType) {
-                    case PATH -> {
-                        if (!isNextArgumentTypeOf(argumentIndex, ArgumentType.ENTRY, argumentStrings)) {
+                    case PATH, NAME -> {
+                        if (!isNextArgumentTypeOf(argumentIndex, ArgumentType.TEXT, argumentStrings)) {
                             return ErrorType.INCORRECT_FOLLOWUP_ARGUMENT;
                         }
                     }
-                    case NAME -> {
-                        if (!isNextArgumentTypeOf(argumentIndex, ArgumentType.TEXT, argumentStrings)) {
+                    case HEALTH -> {
+                        if(!isNextArgumentTypeOf(argumentIndex, ArgumentType.NUMBER, argumentStrings)) {
                             return ErrorType.INCORRECT_FOLLOWUP_ARGUMENT;
                         }
                     }
@@ -49,8 +50,8 @@ public class CommandChecker {
                 }
             }
         }
-        if(!compareArgumentArrays(expectedArguments, actualArguments)) {
-            return ErrorType.INCORRECT_ARGUMENTS;
+        if(!compareFlagTypes(commandType.getRequiredFlagTypes(), command.getFlagTypes())) {
+            return ErrorType.INCORRECT_FLAG_TYPES;
         }
         return ErrorType.NO_ERROR;
     }
@@ -71,15 +72,22 @@ public class CommandChecker {
     }
 
     /**
-     * Check if two argument type arrays contain the same arguments.
-     * @param expectedArguments The expected argument array
-     * @param actualsArguments The actual argument array
+     * Check if two flag type arrays contain the same arguments.
+     * @param expectedFlags The expected flag array
+     * @param actualFlags The actual flag type array
      * @return True if the arrays contain the same arguments, false otherwise
      */
-    private static boolean compareArgumentArrays(ArgumentType[] expectedArguments, ArgumentType[] actualsArguments) {
-        List<ArgumentType> expectedArgumentTypes = List.of(expectedArguments);
-        List<ArgumentType> actualArgumentTypes = List.of(actualsArguments);
-        return new HashSet<>(actualArgumentTypes).containsAll(expectedArgumentTypes);
+    private static boolean compareFlagTypes(Flag[] expectedFlags, FlagType[] actualFlags) {
+        if(actualFlags.length > expectedFlags.length) {
+            return false;
+        }
+        List<FlagType> actualFlagTypes = Arrays.asList(actualFlags);
+        for(Flag expectedFlag : expectedFlags) {
+            if(!actualFlagTypes.contains(expectedFlag.type()) && expectedFlag.required()) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

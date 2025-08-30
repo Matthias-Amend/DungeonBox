@@ -1,4 +1,5 @@
 package file;
+import java.io.File;
 import java.nio.file.Path;
 
 /**
@@ -24,7 +25,7 @@ public interface Document {
      * Get the path of the document.
      * @return The path object
      */
-    public Path getPath();
+    public File getPath();
 
     /**
      * Load file content into the document object.

@@ -8,6 +8,8 @@ public enum ArgumentType {
 
     TEXT,
 
+    NUMBER,
+
     ENTRY;
 
 }

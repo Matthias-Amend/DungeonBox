@@ -1,6 +1,8 @@
 package command;
 
 import command.structure.ArgumentType;
+import command.structure.Flag;
+import command.structure.FlagType;
 
 /**
  * The CommandType enum contains all possible types of {@link Command commands} that a user can execute.
@@ -15,8 +17,8 @@ public enum CommandType {
         }
 
         @Override
-        public ArgumentType[] getArgumentStructure() {
-            return new ArgumentType[]{ArgumentType.COMMAND};
+        public Flag[] getRequiredFlagTypes() {
+            return new Flag[0];
         }
     },
 
@@ -27,9 +29,46 @@ public enum CommandType {
         }
 
         @Override
-        public ArgumentType[] getArgumentStructure() {
-            //Argument structure is {create [-p, --path] path [-c, --character, -e, --entry] [-n, --name] "name"}
-            return new ArgumentType[]{ArgumentType.COMMAND, ArgumentType.FLAG, ArgumentType.ENTRY, ArgumentType.FLAG, ArgumentType.FLAG, ArgumentType.TEXT};
+        public Flag[] getRequiredFlagTypes() {
+            return new Flag[]{new Flag(FlagType.PATH, false), new Flag(FlagType.NAME, true),
+                    new Flag(FlagType.CREATE_TYPE, true)};
+        }
+    },
+
+    SET_ROOT {
+        @Override
+        public String getCommandID() {
+            return "set_root";
+        }
+
+        @Override
+        public Flag[] getRequiredFlagTypes() {
+            return new Flag[]{new Flag(FlagType.PATH, true)};
+        }
+    },
+
+    WRITE {
+        @Override
+        public String getCommandID() {
+            return "write";
+        }
+
+        @Override
+        public Flag[] getRequiredFlagTypes() {
+            return new Flag[]{new Flag(FlagType.PATH, true)};
+        }
+    },
+
+    ADD_LIMB {
+        @Override
+        public String getCommandID() {
+            return "add_limb";
+        }
+
+        @Override
+        public Flag[] getRequiredFlagTypes() {
+            return new Flag[]{new Flag(FlagType.PATH, true), new Flag(FlagType.NAME, true),
+                    new Flag(FlagType.HEALTH, true), new Flag(FlagType.VITAL, false)};
         }
     };
 
@@ -40,10 +79,10 @@ public enum CommandType {
     public abstract String getCommandID();
 
     /**
-     * Get the expected structure of the command.
-     * @return An array of individual arguments the command expects
+     * Get an array of flags required by a specific command
+     * @return The required flag array
      */
-    public abstract ArgumentType[] getArgumentStructure();
+    public abstract Flag[] getRequiredFlagTypes();
 
     /**
      * Get the command type of a specific command object.

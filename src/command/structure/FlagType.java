@@ -12,7 +12,7 @@ public enum FlagType {
     CREATE_TYPE {
         @Override
         public String[] getFlagStrings() {
-            return new String[] {"-c", "--character", "-e", "--entry"};
+            return new String[] {"-c", "--character", "-e", "--entry", "-d", "--directory"};
         }
     },
 
@@ -20,6 +20,20 @@ public enum FlagType {
         @Override
         public String[] getFlagStrings() {
             return new String[]{"-n", "--name"};
+        }
+    },
+
+    VITAL {
+        @Override
+        public String[] getFlagStrings() {
+            return new String[]{"-v", "--vital"};
+        }
+    },
+
+    HEALTH {
+        @Override
+        public String[] getFlagStrings() {
+            return new String[]{"-h", "--health"};
         }
     };
 
