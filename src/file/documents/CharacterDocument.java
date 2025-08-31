@@ -1,8 +1,10 @@
-package file;
+package file.documents;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import file.DocumentReader;
+import file.DocumentWriter;
 import game.objects.Character;
 import game.objects.health.Vitality;
 
@@ -90,13 +92,19 @@ public class CharacterDocument implements Document{
     }
 
     /**
-     * Add a new Limb to the characters body.
-     * @param identifier The identifier of the limb
-     * @param vitality The vitality of the limb
-     * @param health The health value of the limb
+     * Get the document type of the document
+     * @return The document type
      */
-    public void addLimb(String identifier, Vitality vitality, float health) {
-        character.getBody().addLimb(identifier, vitality, health);
+    public DocumentType getDocumentType() {
+        return DocumentType.CHARACTER;
+    }
+
+    /**
+     * Get the character object attached to the document.
+     * @return The character object
+     */
+    public Character getCharacter() {
+        return character;
     }
 
 }

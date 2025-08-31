@@ -1,8 +1,7 @@
 package command;
 
-import command.structure.ArgumentType;
-import command.structure.Flag;
-import command.structure.FlagType;
+import command.tokenizer.TokenType;
+import java.util.List;
 
 /**
  * The CommandType enum contains all possible types of {@link Command commands} that a user can execute.
@@ -10,88 +9,54 @@ import command.structure.FlagType;
  */
 public enum CommandType {
 
-    EXIT {
-        @Override
-        public String getCommandID() {
-            return "exit";
-        }
+    EXIT("exit", List.of(TokenType.COMMAND)),
 
-        @Override
-        public Flag[] getRequiredFlagTypes() {
-            return new Flag[0];
-        }
-    },
+    CREATE("create", List.of(TokenType.COMMAND, TokenType.OPTION, TokenType.STRING, TokenType.STRING)),
 
-    CREATE {
-        @Override
-        public String getCommandID() {
-            return "create";
-        }
+    SET_ROOT("set_root", List.of(TokenType.COMMAND, TokenType.STRING)),
 
-        @Override
-        public Flag[] getRequiredFlagTypes() {
-            return new Flag[]{new Flag(FlagType.PATH, false), new Flag(FlagType.NAME, true),
-                    new Flag(FlagType.CREATE_TYPE, true)};
-        }
-    },
+    WRITE("write", List.of(TokenType.COMMAND, TokenType.STRING)),
 
-    SET_ROOT {
-        @Override
-        public String getCommandID() {
-            return "set_root";
-        }
+    ADD_LIMB("add_limb", List.of(TokenType.COMMAND, TokenType.STRING, TokenType.STRING, TokenType.NUMBER), List.of(TokenType.OPTION)),
 
-        @Override
-        public Flag[] getRequiredFlagTypes() {
-            return new Flag[]{new Flag(FlagType.PATH, true)};
-        }
-    },
+    MODIFY_HEALTH("modify_health", List.of(TokenType.COMMAND, TokenType.STRING, TokenType.STRING, TokenType.NUMBER));
 
-    WRITE {
-        @Override
-        public String getCommandID() {
-            return "write";
-        }
+    private final String commandID;
+    private final List<TokenType> requiredTokens;
+    private final List<TokenType> optionalTokens;
 
-        @Override
-        public Flag[] getRequiredFlagTypes() {
-            return new Flag[]{new Flag(FlagType.PATH, true)};
-        }
-    },
+    CommandType(String commandID, List<TokenType> requiredTokens) {
+        this.commandID = commandID;
+        this.requiredTokens = requiredTokens;
+        this.optionalTokens = List.of();
+    }
 
-    ADD_LIMB {
-        @Override
-        public String getCommandID() {
-            return "add_limb";
-        }
+    CommandType(String commandID, List<TokenType> requiredTokens, List<TokenType> optionalTokens) {
+        this.commandID = commandID;
+        this.requiredTokens = requiredTokens;
+        this.optionalTokens = optionalTokens;
+    }
 
-        @Override
-        public Flag[] getRequiredFlagTypes() {
-            return new Flag[]{new Flag(FlagType.PATH, true), new Flag(FlagType.NAME, true),
-                    new Flag(FlagType.HEALTH, true), new Flag(FlagType.VITAL, false)};
-        }
-    };
+    public String getCommandID() {
+        return commandID;
+    }
 
-    /**
-     * Get the commandID of the command type.
-     * @return The commandID string
-     */
-    public abstract String getCommandID();
+    public List<TokenType> getRequiredTokens() {
+        return requiredTokens;
+    }
 
-    /**
-     * Get an array of flags required by a specific command
-     * @return The required flag array
-     */
-    public abstract Flag[] getRequiredFlagTypes();
+    public List<TokenType> getOptionalTokens() {
+        return optionalTokens;
+    }
 
     /**
      * Get the command type of a specific command object.
-     * @param command The command
+     * @param commandID The commandID string
      * @return The command type
      */
-    public static CommandType getCommandType(Command command) {
+    public static CommandType getCommandType(String commandID) {
         for(CommandType commandType : CommandType.values()) {
-            if(command.getCommandID().equals(commandType.getCommandID())) {
+            if(commandID.equals(commandType.getCommandID())) {
                 return commandType;
             }
         }

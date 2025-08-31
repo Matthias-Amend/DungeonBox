@@ -1,4 +1,4 @@
-package file;
+package file.documents;
 import java.io.File;
 import java.nio.file.Path;
 
@@ -42,6 +42,12 @@ public interface Document {
      * @return The content string
      */
     public String getContent();
+
+    /**
+     * Get the document type of the document
+     * @return The document type
+     */
+    public DocumentType getDocumentType();
 
     /**
      * Check if a file at the specified path exists already.

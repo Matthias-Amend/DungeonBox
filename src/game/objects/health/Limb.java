@@ -45,4 +45,13 @@ public class Limb {
     public Vitality getVitality() {
         return vitality;
     }
+
+    /**
+     * Get the current health value of the limb.
+     * @return The current health value
+     */
+    public float getHealth() {
+        return health;
+    }
+
 }

@@ -1,10 +1,9 @@
 package command;
 
-import command.structure.FlagType;
+import command.tokenizer.Token;
+import command.tokenizer.Tokenizer;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -19,7 +18,7 @@ public record Command(String commandString) {
      * @return The commandID string
      */
     public String getCommandID() {
-        return getArguments()[0];
+        return getTokens()[0].value();
     }
 
     /**
@@ -61,74 +60,20 @@ public record Command(String commandString) {
     }
 
     /**
-     * Split the command string into individual argument strings.
-     * @return An array of argument strings
-     */
-    public String[] getArguments() {
-        String[] formattingArray = getFormattingArray();
-        List<String> arguments = new ArrayList<>();
-        for(String formattingString : formattingArray) {
-            if(!formattingString.isBlank()) {
-                arguments.add(formattingString);
-            }
-        }
-        return arguments.toArray(new String[0]);
-    }
-
-    /**
      * Get the command type of the command.
      * @return The command type of the command
      */
     public CommandType getCommandType() {
-        return CommandType.getCommandType(this);
+        return CommandType.getCommandType(getCommandID());
     }
 
     /**
-     * Get the Variable associated with a specific flag.
-     * If the flag type is PATH, then the path argument following the path flag is returned
-     * @param flag The flag type
-     * @return The argument string associated with the flag, or null if no argument is associated with the flag type
+     * Get a list of all arguments in the command string as an array of tokens.
+     * Each token contains the token type variable as well as a value
+     * @return The tokenized argument array
      */
-    public String getFlagVariable(FlagType flag) {
-        String[] arguments = getArguments();
-        int flagIndex = 0;
-        for(String argument : arguments) {
-            if(FlagType.getFlagType(argument) == flag && flagIndex + 1 < arguments.length) {
-                return arguments[flagIndex + 1];
-            }
-            flagIndex++;
-        }
-        return null;
-    }
-
-    /**
-     * Get an array of all flag types in the command.
-     * @return The flag types array
-     */
-    public FlagType[] getFlagTypes() {
-        String[] arguments = getArguments();
-        List<FlagType> flagTypes = new ArrayList<>();
-        for(String argument : arguments) {
-            FlagType currentFlagType = FlagType.getFlagType(argument);
-            if(currentFlagType != null) {
-                flagTypes.add(currentFlagType);
-            }
-        }
-        return flagTypes.toArray(new FlagType[0]);
-    }
-
-    /**
-     * Check if the command contains a specific flag.
-     * @param flagType The flag type of the flag
-     * @return True if the command contains the flag type, false otherwise
-     */
-    public boolean containsFlag(FlagType flagType) {
-        List<FlagType> flagTypes = Arrays.asList(getFlagTypes());
-        return flagTypes.contains(flagType);
-    }
-
-    public static String stripQuotations(String argument) {
-        return argument.replaceAll("\"", "");
+    public Token[] getTokens() {
+        return Tokenizer.tokenize(commandString);
     }
 
 }

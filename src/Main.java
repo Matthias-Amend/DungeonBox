@@ -19,10 +19,7 @@ public class Main {
         while(gameState.isSimulationRunning()) {
             String input = lineReader.readLine("> ");
             Command command = new Command(input);
-            ErrorType error = gameState.execute(command);
-            if(error != ErrorType.NO_ERROR) {
-                terminal.writer().println(error.toString() + " occurred");
-            }
+            ErrorType error = gameState.execute(command, terminal);
         }
     }
 

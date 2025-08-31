@@ -1,8 +1,10 @@
-package file;
+package file.documents;
+
+import file.DocumentReader;
+import file.DocumentWriter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 
 /**
  * An Entry object represents a miscellaneous type of {@link Document} which contains generic text information.
@@ -79,6 +81,14 @@ public class EntryDocument implements Document{
     @Override
     public String getContent() {
         return content;
+    }
+
+    /**
+     * Get the document type of the document
+     * @return The document type
+     */
+    public DocumentType getDocumentType() {
+        return DocumentType.ENTRY;
     }
 
 }
