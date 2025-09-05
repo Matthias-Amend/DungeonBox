@@ -1,4 +1,4 @@
-package game.objects.health;
+package game.objects.character.health;
 
 /**
  * The Vitality enum specifies whether a limb is considered vital or not

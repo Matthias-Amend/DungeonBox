@@ -76,6 +76,19 @@ public class Tokenizer {
                 }
                 index++;
                 tokenList.add(new Token(TokenType.STRING, stringBuilder.toString()));
+            } else if(character == '/') {
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append(character);
+                index++;
+                while(index < commandString.length()) {
+                    if(Character.isWhitespace(commandString.charAt(index)) && commandString.charAt(index - 1) != '\\') {
+                        break;
+                    }
+                    stringBuilder.append(commandString.charAt(index));
+                    index++;
+                }
+                String tokenValue = stringBuilder.toString().replaceAll("\\\\", "");
+                tokenList.add(new Token(TokenType.ARGUMENT, tokenValue));
             } else {
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append(character);

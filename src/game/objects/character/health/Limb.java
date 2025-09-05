@@ -1,4 +1,4 @@
-package game.objects.health;
+package game.objects.character.health;
 
 /**
  * A Limb represents a single part of a body.
@@ -13,6 +13,10 @@ public class Limb {
     private Vitality vitality;
     private float maxHealth;
     private float health;
+    private boolean armored = false;
+    private boolean destroyed;
+
+    public Limb() {}
 
     public Limb(String identifier, Vitality vitality, float health) {
         this.identifier = identifier;
@@ -27,6 +31,9 @@ public class Limb {
      */
     public void modifyHealthValue(float value) {
         health += value;
+        if(health <= 0) {
+            destroyed = true;
+        }
     }
 
     /**
@@ -35,7 +42,7 @@ public class Limb {
      * @return True if the limb has been destroyed, false otherwise
      */
     public boolean isDestroyed() {
-        return health <= 0;
+        return destroyed;
     }
 
     /**
@@ -52,6 +59,38 @@ public class Limb {
      */
     public float getHealth() {
         return health;
+    }
+
+    /**
+     * Get the limbs max health value.
+     * @return The limbs max health value
+     */
+    public float getMaxHealth() {
+        return maxHealth;
+    }
+
+    /**
+     * Get the limb identifier string.
+     * @return The limb identifier string
+     */
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    /**
+     * Set the armored value of the limb.
+     * @param armored The armored value
+     */
+    public void setArmored(boolean armored) {
+        this.armored = armored;
+    }
+
+    /**
+     * Get the armored value of the limb
+     * @return The armored value
+     */
+    public boolean isArmored() {
+        return armored;
     }
 
 }

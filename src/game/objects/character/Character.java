@@ -1,7 +1,7 @@
-package game.objects;
+package game.objects.character;
 
-import game.objects.health.Limb;
-import game.objects.health.Vitality;
+import game.objects.character.health.Limb;
+import game.objects.character.health.Vitality;
 
 import java.util.HashMap;
 
@@ -12,9 +12,10 @@ import java.util.HashMap;
  */
 public class Character {
 
-    String name;
-
+    private String name;
     private HashMap<String, Limb> bodyMap = new HashMap<>();
+
+    public Character() {}
 
     /**
      * Create a new character object.
@@ -58,6 +59,14 @@ public class Character {
      */
     public HashMap<String, Limb> getBody() {
         return bodyMap;
+    }
+
+    /**
+     * Set the body map.
+     * @param bodyMap The body map
+     */
+    public void setBody(HashMap<String, Limb> bodyMap) {
+        this.bodyMap = bodyMap;
     }
 
 }

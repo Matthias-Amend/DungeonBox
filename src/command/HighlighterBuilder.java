@@ -1,7 +1,5 @@
 package command;
 
-import command.tokenizer.Token;
-import command.tokenizer.TokenType;
 import org.jline.reader.Highlighter;
 import org.jline.reader.LineReader;
 import org.jline.reader.impl.DefaultHighlighter;
@@ -14,6 +12,7 @@ public class HighlighterBuilder {
     public static final AttributedStyle OPTION_STYLE = AttributedStyle.BOLD.foreground(AttributedStyle.YELLOW).bold();
     public static final AttributedStyle STRING_STYLE = AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN);
     public static final AttributedStyle COMMAND_STYLE = AttributedStyle.BOLD.foreground(AttributedStyle.MAGENTA).bold();
+    public static final AttributedStyle PATH_STYLE = AttributedStyle.DEFAULT.background(AttributedStyle.GREEN);
 
     public static Highlighter build() {
         return new DefaultHighlighter() {
@@ -69,7 +68,20 @@ public class HighlighterBuilder {
                             index++;
                         }
                         builder.append(subBuilder.toAttributedString());
-                    } else {
+                    } else if(character == '/') {
+                        AttributedStringBuilder subBuilder = new AttributedStringBuilder();
+                        subBuilder.styled(PATH_STYLE, String.valueOf(character));
+                        index++;
+                        while(index < buffer.length()) {
+                            if(Character.isWhitespace(buffer.charAt(index)) && buffer.charAt(index - 1) != '\\') {
+                                break;
+                            }
+                            subBuilder.styled(PATH_STYLE, String.valueOf(buffer.charAt(index)));
+                            index++;
+                        }
+                        builder.append(subBuilder.toAttributedString());
+                    }
+                    else {
                         AttributedStringBuilder subBuilder = new AttributedStringBuilder();
                         subBuilder.append(character);
                         index++;

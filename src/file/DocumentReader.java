@@ -1,5 +1,6 @@
 package file;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,13 +17,12 @@ public class DocumentReader {
      * @param path The path of the file that is to be read
      * @return The content of the file as a String
      */
-    public static String readFile(Path path) {
+    public static String readFile(File path) {
         try {
-            return String.join("\n", Files.readAllLines(path));
+            return String.join("\n", Files.readAllLines(path.toPath()));
         } catch (IOException e) {
-            System.err.println("Error reading file: " + e.getMessage());
+            return null;
         }
-        return null;
     }
 
 

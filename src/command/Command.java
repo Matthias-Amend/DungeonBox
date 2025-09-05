@@ -18,45 +18,11 @@ public record Command(String commandString) {
      * @return The commandID string
      */
     public String getCommandID() {
-        return getTokens()[0].value();
-    }
-
-    /**
-     * Get the formatting array of the command.
-     * The formatting array contains all arguments of the command as well as every whitespace
-     * When highlighting the command arguments, the formatting array is necessary
-     * @return The commands formatting array
-     */
-    public String[] getFormattingArray() {
-        List<String> arguments = new ArrayList<>();
-        int startingIndex = 0;
-        while(startingIndex < commandString.length()) {
-            int endingIndex = 0;
-            if(commandString.charAt(startingIndex) == ' ') {
-                arguments.add(" ");
-                startingIndex++;
-            } else {
-                if(commandString.charAt(startingIndex) == '"') {
-                    endingIndex = commandString.indexOf('"', startingIndex + 1);
-                    if(endingIndex == -1) {
-                        endingIndex = commandString.length();
-                    } else {
-                        endingIndex++;
-                    }
-                } else {
-                    endingIndex = commandString.indexOf(' ', startingIndex);
-                    if(endingIndex == -1) {
-                        endingIndex = commandString.length();
-                    }
-                }
-                String argument = commandString.substring(startingIndex, endingIndex);
-                if(!argument.isBlank()) {
-                    arguments.add(argument);
-                }
-                startingIndex = endingIndex;
-            }
+        Token[] tokens = getTokens();
+        if(tokens.length != 0) {
+            return getTokens()[0].value();
         }
-        return arguments.toArray(new String[0]);
+        return null;
     }
 
     /**

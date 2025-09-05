@@ -4,6 +4,12 @@ public enum DocumentType {
 
     CHARACTER,
 
-    ENTRY;
+    WEAPON,
+
+    SKILL,
+
+    UTILITY,
+
+    UNSPECIFIED;
 
 }

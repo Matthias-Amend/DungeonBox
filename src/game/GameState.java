@@ -3,16 +3,18 @@ package game;
 import command.Command;
 import command.CommandType;
 import command.CommandValidator;
-import command.ErrorType;
+import command.output.BoxPrinter;
+import command.output.ExecutionReceipt;
+import command.output.HealthPrinter;
 import command.tokenizer.Token;
 import file.documents.CharacterDocument;
 import file.documents.Document;
-import file.documents.DocumentType;
-import file.documents.EntryDocument;
-import game.objects.health.Vitality;
+import game.objects.character.health.Vitality;
 import org.jline.terminal.Terminal;
+import org.jline.utils.AttributedString;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,62 +26,34 @@ public class GameState {
     private List<Document> documents = new ArrayList<Document>();
     private File root = new File(System.getProperty("user.dir"));
 
+    private CommandValidator validator = new CommandValidator();
+
+
     /**
      * Execute a Command.
      * @param command The command
      */
-    public ErrorType execute(Command command, Terminal terminal) {
-        ErrorType errorType = CommandValidator.validate(command);
-        if(errorType != NO_ERROR) {
-            return errorType;
+    public ExecutionReceipt execute(Command command, Terminal terminal) {
+        validator.setRoot(root);
+        ExecutionReceipt receipt = validator.validate(command);
+        if(receipt.error() != NO_ERROR) {
+            return receipt;
         }
         CommandType commandType = command.getCommandType();
         switch(commandType) {
-            case EXIT -> {
-                simulationRunning = false;
-            }
-            case CREATE -> {
-                errorType = executeCreateCommand(command);
-                if(errorType == NO_ERROR) {
-                    terminal.writer().println("New document created!");
-                } else {
-                    terminal.writer().println(errorType.toString() + " occurred while creating new document!");
-                }
-            }
-            case SET_ROOT -> {
-                errorType = executeSetRootCommand(command);
-                if(errorType == NO_ERROR) {
-                    terminal.writer().println("Set root path to " + root.getAbsolutePath());
-                } else {
-                    terminal.writer().println(errorType.toString() + " occurred while setting new root path!");
-                }
-            }
-            case ADD_LIMB -> {
-                errorType = executeAddLimbCommand(command);
-                if(errorType == NO_ERROR) {
-                    terminal.writer().println("Added limb to character!");
-                } else {
-                    terminal.writer().println(errorType.toString() + " occurred while adding limb to character!");
-                }
-            }
-            case WRITE -> {
-                errorType = executeWriteCommand(command);
-                if(errorType == NO_ERROR) {
-                    terminal.writer().println("Wrote to file!");
-                } else {
-                    terminal.writer().println(errorType.toString() + " occurred while writing to file!");
-                }
-            }
-            case MODIFY_HEALTH -> {
-                errorType = executeModifyHealthCommand(command);
-                if(errorType == NO_ERROR) {
-                    terminal.writer().println("Modified health value!");
-                } else {
-                    terminal.writer().println(errorType.toString() + " occurred while modifying health value!");
-                }
-            }
+            case EXIT -> simulationRunning = false;
+            case CREATE -> receipt = executeCreateCommand(command);
+            case SET_ROOT -> receipt = executeSetRootCommand(command);
+            case ADD_LIMB -> receipt = executeAddLimbCommand(command);
+            case REMOVE_LIMB -> receipt = executeRemoveLimbCommand(command);
+            case WRITE -> receipt = executeWriteCommand(command);
+            case READ -> receipt = executeReadCommand(command);
+            case MODIFY_HEALTH -> receipt = executeModifyHealthCommand(command);
+            case PRINT_HEALTH -> receipt = executePrintHealthCommand(command, terminal);
+            case EXPORT_HEALTH -> receipt = executeExportHealthCommand(command);
+            case IMPORT_HEALTH -> receipt = executeImportHealthCommand(command);
         }
-        return errorType;
+        return receipt;
     }
 
     /**
@@ -87,28 +61,18 @@ public class GameState {
      * @param command The command object
      * @return The Error that occurred during execution, NO_ERROR if no error occurred
      */
-    private ErrorType executeCreateCommand(Command command) {
+    private ExecutionReceipt executeCreateCommand(Command command) {
         Token[] tokens = command.getTokens();
         String createTypeOption = tokens[1].value();
-        if(!List.of("-c", "--character", "-e", "--entry").contains(createTypeOption)) {
-            return INVALID_OPTION;
-        }
         String pathString = tokens[2].value();
-        File path = getTotalPathOfDirectory(pathString);
-        if(path == null) {
-            return INVALID_PATH;
-        }
         String nameString = tokens[3].value();
+        File path = getTotalPathOfDirectory(pathString);
         if(List.of("-c", "--character").contains(createTypeOption)) {
             CharacterDocument document = new CharacterDocument(nameString, path);
             document.create();
             documents.add(document);
-        } else if(List.of("-e", "--entry").contains(createTypeOption)) {
-            EntryDocument document = new EntryDocument(nameString, path);
-            document.create();
-            documents.add(document);
         }
-        return NO_ERROR;
+        return new ExecutionReceipt(command.getCommandType(), NO_ERROR, null);
     }
 
     /**
@@ -116,15 +80,13 @@ public class GameState {
      * @param command The command object
      * @return The Error that occurred during execution, NO_ERROR if no error occurred
      */
-    private ErrorType executeSetRootCommand(Command command) {
+    private ExecutionReceipt executeSetRootCommand(Command command) {
         Token[] tokens = command.getTokens();
         String pathString = tokens[1].value();
         File path = new File(pathString);
-        if(!path.isDirectory()) {
-            return INVALID_PATH;
-        }
         root = path;
-        return NO_ERROR;
+        validator.setRoot(root);
+        return new ExecutionReceipt(command.getCommandType(), NO_ERROR, null);
     }
 
     /**
@@ -132,31 +94,41 @@ public class GameState {
      * @param command The command object
      * @return The Error that occurred during execution, NO_ERROR if no error occurred
      */
-    private ErrorType executeAddLimbCommand(Command command) {
+    private ExecutionReceipt executeAddLimbCommand(Command command) {
         Token[] tokens = command.getTokens();
         String pathString = tokens[1].value();
-        File path = getTotalPathOfFile(pathString);
-        if(path == null) {
-            return INVALID_PATH;
-        }
-        if(!isFileOfType(path, DocumentType.CHARACTER)) {
-            return INVALID_DOCUMENT;
-        }
         String nameString = tokens[2].value();
         String healthString = tokens[3].value();
         float health = Float.parseFloat(healthString);
+        File path = getTotalPathOfFile(pathString);
         Vitality vitality = Vitality.NOT_VITAL;
         if(tokens.length > 4) {
             String vitalityOptionString = tokens[4].value();
             if(List.of("-v", "--vital").contains(vitalityOptionString)) {
                 vitality = Vitality.VITAL;
-            } else {
-                return INVALID_OPTION;
             }
         }
         CharacterDocument document = (CharacterDocument) getDocumentAtPath(path);
         document.getCharacter().addLimb(nameString, vitality, health);
-        return NO_ERROR;
+        return new ExecutionReceipt(command.getCommandType(), NO_ERROR, null);
+    }
+
+    /**
+     * execute the remove limb command
+     * @param command The command object
+     * @return The Error that occurred during execution, NO_ERROR if no error occurred
+     */
+    private ExecutionReceipt executeRemoveLimbCommand(Command command) {
+        Token[] tokens = command.getTokens();
+        String pathString = tokens[1].value();
+        String nameString = tokens[2].value();
+        File path = getTotalPathOfFile(pathString);
+        CharacterDocument document = (CharacterDocument) getDocumentAtPath(path);
+        if(!document.getCharacter().hasLimb(nameString)) {
+            return new ExecutionReceipt(command.getCommandType(), CHARACTER_ERROR, null);
+        }
+        document.getCharacter().removeLimb(nameString);
+        return new ExecutionReceipt(command.getCommandType(), NO_ERROR, null);
     }
 
     /**
@@ -164,15 +136,29 @@ public class GameState {
      * @param command The command object
      * @return The Error that occurred during execution, NO_ERROR if no error occurred
      */
-    private ErrorType executeWriteCommand(Command command) {
+    private ExecutionReceipt executeWriteCommand(Command command) {
         Token[] tokens = command.getTokens();
         String pathString = tokens[1].value();
         File path = getTotalPathOfFile(pathString);
-        if(path == null) {
-            return INVALID_PATH;
-        }
         getDocumentAtPath(path).write();
-        return NO_ERROR;
+        return new ExecutionReceipt(command.getCommandType(), NO_ERROR, null);
+    }
+
+    private ExecutionReceipt executeReadCommand(Command command) {
+        Token[] tokens = command.getTokens();
+        String pathString = tokens[1].value();
+        File path = getTotalPathOfFile(pathString);
+        if(pathString.endsWith(".character")) {
+            String fileName = path.getName().replace(".character", "");
+            CharacterDocument document = new CharacterDocument(fileName, path.getParentFile());
+            if(!document.read()) {
+                return new ExecutionReceipt(command.getCommandType(), FILE_ERROR, path.getAbsolutePath());
+            }
+            documents.add(document);
+        } else {
+            return new ExecutionReceipt(command.getCommandType(), INVALID_PATH, path.getAbsolutePath());
+        }
+        return new ExecutionReceipt(command.getCommandType(), NO_ERROR, null);
     }
 
     /**
@@ -180,25 +166,80 @@ public class GameState {
      * @param command The command object
      * @return The Error that occurred during execution, NO_ERROR if no error occurred
      */
-    private ErrorType executeModifyHealthCommand(Command command) {
+    private ExecutionReceipt executeModifyHealthCommand(Command command) {
         Token[] tokens = command.getTokens();
         String pathString = tokens[1].value();
-        File path = getTotalPathOfFile(pathString);
-        if(path == null) {
-            return INVALID_PATH;
-        }
-        if(!isFileOfType(path, DocumentType.CHARACTER)) {
-            return INVALID_PATH;
-        }
-        CharacterDocument document = (CharacterDocument) getDocumentAtPath(path);
         String nameString = tokens[2].value();
         String valueString = tokens[3].value();
         float value = Float.valueOf(valueString);
+        File path = getTotalPathOfFile(pathString);
+        CharacterDocument document = (CharacterDocument) getDocumentAtPath(path);
         if(!document.getCharacter().hasLimb(nameString)) {
-            return CHARACTER_ERROR;
+            return new ExecutionReceipt(command.getCommandType(), CHARACTER_ERROR, null);
         }
         document.getCharacter().modifyLimbHealth(nameString, value);
-        return NO_ERROR;
+        return new ExecutionReceipt(command.getCommandType(), NO_ERROR, null);
+    }
+
+    /**
+     * execute the print health command.
+     * @param command The command object
+     * @param terminal The terminal object
+     * @return The Error that occurred during execution, NO_ERROR if no error occurred
+     */
+    private ExecutionReceipt executePrintHealthCommand(Command command, Terminal terminal) {
+        Token[] tokens = command.getTokens();
+        String pathString = tokens[1].value();
+        File path = getTotalPathOfFile(pathString);
+        CharacterDocument document = (CharacterDocument) getDocumentAtPath(path);
+        AttributedString output = HealthPrinter.printHealth(document.getCharacter());
+        terminal.writer().println(output.toAnsi());
+        return new ExecutionReceipt(command.getCommandType(), NO_ERROR, null);
+    }
+
+    /**
+     * Execute the export health command
+     * @param command The command object
+     * @return The Error that occurred during execution, NO_ERROR if no error occurred
+     */
+    private ExecutionReceipt executeExportHealthCommand(Command command) {
+        Token[] tokens = command.getTokens();
+        String sourcePathString = tokens[1].value();
+        String targetPathDirectoryString = tokens[2].value();
+        String nameString = tokens[3].value();
+        File sourcePath = getTotalPathOfFile(sourcePathString);
+        File targetPathDirectory = getTotalPathOfDirectory(targetPathDirectoryString);
+        CharacterDocument document = (CharacterDocument) getDocumentAtPath(sourcePath);
+        File targetFile = new File(targetPathDirectory, nameString);
+        try {
+            targetFile.createNewFile();
+        } catch (IOException e) {
+            return new ExecutionReceipt(command.getCommandType(), INVALID_PATH, targetPathDirectory.getAbsolutePath());
+        }
+        boolean writingSucceeded = document.writeHealthToFile(targetFile);
+        if(!writingSucceeded) {
+            return new ExecutionReceipt(command.getCommandType(), FILE_ERROR, targetFile.getAbsolutePath());
+        }
+        return new ExecutionReceipt(command.getCommandType(), NO_ERROR, null);
+    }
+
+    /**
+     * Execute the import health command.
+     * @param command The command object
+     * @return The Error that occurred during execution, NO_ERROR if no error occurred
+     */
+    private ExecutionReceipt executeImportHealthCommand(Command command) {
+        Token[] tokens = command.getTokens();
+        String targetPathString = tokens[1].value();
+        String sourcePathString = tokens[2].value();
+        File targetPath = getTotalPathOfFile(targetPathString);
+        File sourcePath = getTotalPathOfFile(sourcePathString);
+        CharacterDocument document = (CharacterDocument) getDocumentAtPath(targetPath);
+        boolean readingSucceeded = document.readHealthFromFile(sourcePath);
+        if(!readingSucceeded) {
+            return new ExecutionReceipt(command.getCommandType(), FILE_ERROR, sourcePath.getAbsolutePath());
+        }
+        return new ExecutionReceipt(command.getCommandType(), NO_ERROR, null);
     }
 
     /**
@@ -240,29 +281,13 @@ public class GameState {
     }
 
     /**
-     * Check if the specified file is of the correct document type.
-     * @param path The path of the file
-     * @param documentType The expected document type
-     * @return True if the file is of the correct document type, false otherwise
-     */
-    private boolean isFileOfType(File path, DocumentType documentType) {
-        for(Document document : documents) {
-            File documentPath = new File(document.getPath(), document.getTitle());
-            if(documentPath.equals(path) && document.getDocumentType() == documentType) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Get the document at the specified path.
      * @param path The path
      * @return The document located at the specified path
      */
     private Document getDocumentAtPath(File path) {
         for(Document document : documents) {
-            File documentPath = new File(document.getPath(), document.getTitle());
+            File documentPath = document.getFileLocation();
             if(documentPath.equals(path)) {
                 return document;
             }
@@ -272,6 +297,14 @@ public class GameState {
 
     public boolean isSimulationRunning() {
         return simulationRunning;
+    }
+
+    /**
+     * Get the root directory path.
+     * @return The root directory path as a file object
+     */
+    public File getRoot() {
+        return root;
     }
 
 }

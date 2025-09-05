@@ -14,6 +14,8 @@ public enum ErrorType {
 
     CHARACTER_ERROR,
 
+    FILE_ERROR,
+
     NO_ERROR;
 
 }

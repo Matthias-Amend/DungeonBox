@@ -12,8 +12,9 @@ public interface Document {
      * Create the document as a file.
      * If a file at the specified path does not yet exist, a new file will be created.
      * Should a file with the same name exist at the specified location, the existing file will NOT be overwritten
+     * @return True if the file creation was successful, false otherwise
      */
-    public void create();
+    public boolean create();
 
     /**
      * Get the title string of the document.
@@ -22,26 +23,16 @@ public interface Document {
     public String getTitle();
 
     /**
-     * Get the path of the document.
-     * @return The path object
-     */
-    public File getPath();
-
-    /**
      * Load file content into the document object.
+     * @return True if the reading operation was successful, false otherwise
      */
-    public void read();
+    public boolean read();
 
     /**
      * Write the content string into the file.
+     * @return True if the writing operation was successful, false otherwise
      */
-    public void write();
-
-    /**
-     * Get the content of the document as a string.
-     * @return The content string
-     */
-    public String getContent();
+    public boolean write();
 
     /**
      * Get the document type of the document
@@ -57,5 +48,11 @@ public interface Document {
     public static boolean doesFileExist(Path path) {
         return path.toFile().exists();
     }
+
+    /**
+     * Get the absolute file location of the document.
+     * @return The absolute file location
+     */
+    public File getFileLocation();
 
 }
